@@ -179,9 +179,10 @@ def _handle_le_advertising_report(pkt):
             report["report_type_string"] = "LE_ADV_NONCONN_IND"
         elif report_event_type == constants.LE_ADV_SCAN_RSP:
             report["report_type_string"] = "LE_ADV_SCAN_RSP"
-            local_name_len, = struct.unpack("<B", pkt[report_pkt_offset + 11])
-            name = pkt[report_pkt_offset + 12:report_pkt_offset + 12 + (local_name_len - 1)]
-            report["peer_name"] = name
+            if report_data_length:
+                local_name_len, = struct.unpack("<B", pkt[report_pkt_offset + 11])
+                name = pkt[report_pkt_offset + 12:report_pkt_offset + 12 + (local_name_len - 1)]
+                report["peer_name"] = name
         else:
             report["report_type_string"] = "UNKNOWN"
         # Each report length is (2 (event type, bdaddr type) + 6 (the address)
@@ -197,7 +198,7 @@ def _handle_le_read_remote_used_features(pkt):
     result["features"] = []
     status, handle = struct.unpack("<BH", pkt[:3])
     result["status"] = status
-    result["handle"] = status
+    result["handle"] = handle
     for i in range(8):
         result["features"].append(struct.unpack("<B", pkt[3 + i])[0])
     return result
